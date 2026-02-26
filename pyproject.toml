@@ -1,0 +1,9 @@
+[project]
+name = "bahai-calendar"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "convertdate>=2.4.1",
+]
