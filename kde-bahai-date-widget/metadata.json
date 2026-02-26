@@ -1,0 +1,18 @@
+{
+  "KPackageStructure": "Plasma/Applet",
+  "KPlugin": {
+    "Authors": [
+      {
+        "Email": "you@example.com",
+        "Name": "Bahá’í Calendar Widget"
+      }
+    ],
+    "Category": "Date and Time",
+    "Description": "Displays the current Bahá’í date.",
+    "EnabledByDefault": true,
+    "Id": "org.example.bahaidate",
+    "License": "MIT",
+    "Name": "Bahá’í Date"
+  },
+  "X-Plasma-API-Minimum-Version": "6.0"
+}
