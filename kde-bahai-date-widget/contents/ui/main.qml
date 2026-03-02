@@ -77,20 +77,20 @@ PlasmoidItem {
             const exitCode = data["exit code"];
             const hasExitCode = exitCode !== undefined;
 
-            // The executable data engine can emit an initial empty update before
-            // process completion. Wait for output or an exit code before deciding.
-            if (out.length === 0 && err.length === 0 && !hasExitCode) {
+            // Ignore empty intermediary updates, including exit-code-only updates.
+            // Some Plasma versions deliver stdout/stderr in a subsequent emission.
+            if (out.length === 0 && err.length === 0) {
+                if (hasExitCode && Number(exitCode) !== 0) {
+                    root.bahaiDate = "Error: command failed (" + exitCode + ")";
+                    root.execSource.disconnectSource(sourceName);
+                }
                 return;
             }
 
             if (out.length > 0) {
                 root.bahaiDate = out;
-            } else if (err.length > 0) {
-                root.bahaiDate = "Error: " + err;
-            } else if (hasExitCode && Number(exitCode) !== 0) {
-                root.bahaiDate = "Error: command failed (" + exitCode + ")";
             } else {
-                root.bahaiDate = "Date unavailable";
+                root.bahaiDate = "Error: " + err;
             }
 
             root.execSource.disconnectSource(sourceName);
