@@ -37,15 +37,20 @@ PlasmoidItem {
     preferredRepresentation: compactRepresentation
 
     compactRepresentation: Item {
-        Layout.minimumWidth: label.implicitWidth + Kirigami.Units.largeSpacing * 2
-        Layout.minimumHeight: label.implicitHeight + Kirigami.Units.largeSpacing * 2
+        Layout.minimumWidth: Math.max(label.implicitWidth, Kirigami.Units.gridUnit * 8)
+        Layout.minimumHeight: Math.max(label.implicitHeight, Kirigami.Units.gridUnit * 3)
 
         Kirigami.Heading {
             id: label
-            anchors.centerIn: parent
+            anchors.fill: parent
+            anchors.margins: Kirigami.Units.smallSpacing
             text: root.bahaiDate
-            level: 3
-            wrapMode: Text.NoWrap
+            level: 4
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            wrapMode: Text.WordWrap
+            maximumLineCount: 2
+            elide: Text.ElideRight
         }
     }
 
@@ -69,7 +74,8 @@ PlasmoidItem {
         function onNewData(sourceName, data) {
             const out = String(data["stdout"] || "").trim();
             const err = String(data["stderr"] || "").trim();
-            const hasExitCode = data["exit code"] !== undefined;
+            const exitCode = data["exit code"];
+            const hasExitCode = exitCode !== undefined;
 
             // The executable data engine can emit an initial empty update before
             // process completion. Wait for output or an exit code before deciding.
@@ -81,8 +87,10 @@ PlasmoidItem {
                 root.bahaiDate = out;
             } else if (err.length > 0) {
                 root.bahaiDate = "Error: " + err;
+            } else if (hasExitCode && Number(exitCode) !== 0) {
+                root.bahaiDate = "Error: command failed (" + exitCode + ")";
             } else {
-                root.bahaiDate = "No date output";
+                root.bahaiDate = "Date unavailable";
             }
 
             root.execSource.disconnectSource(sourceName);

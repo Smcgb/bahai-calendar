@@ -5,7 +5,11 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-from convertdate import bahai
+try:
+    from convertdate import bahai
+except ModuleNotFoundError:
+    print("Bahá’í date dependency missing: install python3-convertdate")
+    raise SystemExit(0)
 
 
 BAHAI_MONTH_NAMES = {
