@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
 import org.kde.plasma.plasmoid
-import org.kde.plasma.plasma5support as Plasma5Support
 import org.kde.kirigami as Kirigami
 
 PlasmoidItem {
@@ -9,6 +8,31 @@ PlasmoidItem {
 
     property string bahaiDate: "Loading…"
     readonly property string helperCommand: "python3 " + plasmoid.file("code", "get_bahai_date.py")
+    property QtObject execSource: null
+
+    function createExecDataSource() {
+        const plasma6Source = 'import QtQuick; import org.kde.plasma.plasma5support as Plasma5Support; Plasma5Support.DataSource { engine: "executable" }';
+        const plasma5Source = 'import QtQuick; import org.kde.plasma.core as PlasmaCore; PlasmaCore.DataSource { engine: "executable" }';
+
+        try {
+            root.execSource = Qt.createQmlObject(plasma6Source, root, "execSourcePlasma6");
+        } catch (plasma6Error) {
+            try {
+                root.execSource = Qt.createQmlObject(plasma5Source, root, "execSourcePlasma5");
+            } catch (plasma5Error) {
+                root.bahaiDate = "Error: failed to load DataSource";
+            }
+        }
+    }
+
+    function refreshDate() {
+        if (!root.execSource) {
+            root.bahaiDate = "Error: No executable data source";
+            return;
+        }
+
+        root.execSource.connectSource(root.helperCommand);
+    }
 
     preferredRepresentation: compactRepresentation
 
@@ -39,11 +63,10 @@ PlasmoidItem {
         }
     }
 
-    Plasma5Support.DataSource {
-        id: execSource
-        engine: "executable"
+    Connections {
+        target: root.execSource
 
-        onNewData: function (sourceName, data) {
+        function onNewData(sourceName, data) {
             const out = (data["stdout"] || "").trim();
             const err = (data["stderr"] || "").trim();
 
@@ -55,17 +78,21 @@ PlasmoidItem {
                 root.bahaiDate = "No date output";
             }
 
-            disconnectSource(sourceName);
+            root.execSource.disconnectSource(sourceName);
         }
+    }
+
+    Component.onCompleted: {
+        createExecDataSource();
+        refreshDate();
     }
 
     Timer {
         interval: 60 * 1000
         running: true
         repeat: true
-        triggeredOnStart: true
         onTriggered: {
-            execSource.connectSource(root.helperCommand);
+            root.refreshDate();
         }
     }
 }
