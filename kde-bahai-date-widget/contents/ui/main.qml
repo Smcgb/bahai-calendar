@@ -67,8 +67,15 @@ PlasmoidItem {
         target: root.execSource
 
         function onNewData(sourceName, data) {
-            const out = (data["stdout"] || "").trim();
-            const err = (data["stderr"] || "").trim();
+            const out = String(data["stdout"] || "").trim();
+            const err = String(data["stderr"] || "").trim();
+            const hasExitCode = data["exit code"] !== undefined;
+
+            // The executable data engine can emit an initial empty update before
+            // process completion. Wait for output or an exit code before deciding.
+            if (out.length === 0 && err.length === 0 && !hasExitCode) {
+                return;
+            }
 
             if (out.length > 0) {
                 root.bahaiDate = out;
